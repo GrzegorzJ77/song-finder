@@ -1,6 +1,6 @@
 // ======== KONFIGURACJA SPOTIFY ========
-const clientId = "TU_WKLEJ_SWÓJ_CLIENT_ID"; // Twój Client ID z Spotify Dashboard
-const redirectUri = "https://twojanazwa.github.io/song-finder/"; // Twój URL GitHub Pages
+const clientId = "d46489fc111b45aea775339b985ebf31"; // Twój Client ID z Spotify Dashboard
+const redirectUri = "https://grzegorzj77.github.io/song-finder/"; // Twój URL GitHub Pages
 const scopes = "user-read-private user-read-email playlist-modify-public";
 
 // ======== ELEMENTY HTML ========
