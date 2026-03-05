@@ -20,27 +20,19 @@ function getTokenFromUrl() {
 // ======== INICJALIZACJA TOKENA ========
 let accessToken = null;
 
+// Pobranie tokena z URL jeśli strona wróciła z autoryzacją
 const tokenFromUrl = getTokenFromUrl();
 if (tokenFromUrl && tokenFromUrl !== "") {
     accessToken = tokenFromUrl;
     console.log("Token Spotify pobrany:", accessToken);
 
-    // usuń hash z URL, żeby strona wyglądała czysto
+    // usuń hash z URL, aby strona wyglądała czysto
     window.history.replaceState({}, document.title, redirectUri);
 }
 
-// ======== USTAWIENIE WIDOCZNOŚCI PRZYCISKU LOGOWANIA ========
-function updateLoginButton() {
-    if (accessToken && accessToken !== "") {
-        loginBtn.style.display = "none"; // ukryj przycisk po zalogowaniu
-    } else {
-        loginBtn.style.display = "block"; // pokaż przycisk jeśli brak tokena
-    }
-}
+// ======== PRZYCISK LOGOWANIA – ZAWSZE WIDOCZNY ========
+loginBtn.style.display = "block"; // zawsze widoczny
 
-updateLoginButton();
-
-// ======== OBSŁUGA PRZYCISKU LOGOWANIA ========
 loginBtn.addEventListener('click', () => {
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
     window.location = authUrl;
@@ -101,9 +93,8 @@ async function searchSpotify(query) {
 
         if (response.status === 401) {
             // Token wygasł lub nieprawidłowy
-            alert("Twój token wygasł. Zaloguj się ponownie do Spotify.");
+            alert("Twój token wygasł lub jest nieprawidłowy. Zaloguj się ponownie do Spotify.");
             accessToken = null;
-            updateLoginButton();
             resultsList.innerHTML = "";
             return;
         }
