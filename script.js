@@ -9,7 +9,7 @@ const loginBtn = document.getElementById('loginBtn');
 const userText = document.getElementById('userText');
 const resultsList = document.getElementById('results');
 
-// ======== OAUTH – pobranie tokena z URL ========
+// ======== FUNKCJA DO POBRANIA TOKENA Z URL ========
 function getTokenFromUrl() {
     const hash = window.location.hash;
     if (!hash) return null;
@@ -17,19 +17,28 @@ function getTokenFromUrl() {
     return params.get('access_token');
 }
 
-let accessToken = getTokenFromUrl();
+// ======== INICJALIZACJA TOKENA ========
+let accessToken = null;
 
-// ======== USTAWIENIE PRZYCISKU LOGOWANIA ========
-if (accessToken && accessToken !== "") {
-    console.log("Token Spotify:", accessToken);
-    loginBtn.style.display = "none"; // ukryj przycisk po zalogowaniu
+const tokenFromUrl = getTokenFromUrl();
+if (tokenFromUrl && tokenFromUrl !== "") {
+    accessToken = tokenFromUrl;
+    console.log("Token Spotify pobrany:", accessToken);
 
-    // Usuń hash z URL, żeby strona była czysta
+    // usuń hash z URL, żeby strona wyglądała czysto
     window.history.replaceState({}, document.title, redirectUri);
-} else {
-    console.log("Brak tokena – przycisk logowania widoczny");
-    loginBtn.style.display = "block"; // wymuś widoczność przycisku
 }
+
+// ======== USTAWIENIE WIDOCZNOŚCI PRZYCISKU LOGOWANIA ========
+function updateLoginButton() {
+    if (accessToken && accessToken !== "") {
+        loginBtn.style.display = "none"; // ukryj przycisk po zalogowaniu
+    } else {
+        loginBtn.style.display = "block"; // pokaż przycisk jeśli brak tokena
+    }
+}
+
+updateLoginButton();
 
 // ======== OBSŁUGA PRZYCISKU LOGOWANIA ========
 loginBtn.addEventListener('click', () => {
@@ -75,6 +84,11 @@ recognition.addEventListener('error', (event) => {
 
 // ======== FUNKCJA WYSZUKIWANIA PIOSENEK W SPOTIFY ========
 async function searchSpotify(query) {
+    if (!accessToken) {
+        alert("Brak tokena – zaloguj się do Spotify!");
+        return;
+    }
+
     resultsList.innerHTML = "<li>Ładowanie...</li>";
 
     const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`;
@@ -84,6 +98,15 @@ async function searchSpotify(query) {
         const response = await fetch(url, {
             headers: { "Authorization": `Bearer ${accessToken}` }
         });
+
+        if (response.status === 401) {
+            // Token wygasł lub nieprawidłowy
+            alert("Twój token wygasł. Zaloguj się ponownie do Spotify.");
+            accessToken = null;
+            updateLoginButton();
+            resultsList.innerHTML = "";
+            return;
+        }
 
         if (!response.ok) {
             resultsList.innerHTML = `<li>Błąd: ${response.status} ${response.statusText}</li>`;
@@ -96,6 +119,7 @@ async function searchSpotify(query) {
         console.log("Dane Spotify:", data);
 
         resultsList.innerHTML = "";
+
         if (data.tracks && data.tracks.items.length > 0) {
             data.tracks.items.forEach(track => {
                 const li = document.createElement('li');
