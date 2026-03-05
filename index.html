@@ -2,50 +2,27 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Finder PWA</title>
+    <title>Song Finder</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-            background: #f9f9f9;
-        }
-        button {
-            font-size: 16px;
-            padding: 10px 20px;
-            margin: 5px 0;
-            cursor: pointer;
-        }
-        #userText {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        #results {
-            margin-top: 15px;
-            list-style: none;
-            padding-left: 0;
-        }
-        #results li {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-        #results a {
-            margin-left: 10px;
-            color: #1DB954;
-            text-decoration: none;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; font-size: 16px; }
+        #results li { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h1>Song Finder PWA</h1>
-    <button id="loginBtn">Zaloguj się do Spotify</button>
+    <h1>Song Finder – wyszukaj piosenkę</h1>
+
+    <!-- Przycisk logowania już niepotrzebny -->
+    <!--<button id="loginBtn">Zaloguj się do Spotify</button>-->
+
+    <!-- Przycisk nagrywania -->
     <button id="startRecording">🎤 Nagraj fragment piosenki</button>
+
     <p id="userText"></p>
+
     <ul id="results"></ul>
 
-    <!-- Podłączenie skryptu -->
+    <!-- Skrypt -->
     <script src="script.js"></script>
 </body>
 </html>
