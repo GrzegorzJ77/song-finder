@@ -1,44 +1,37 @@
 // ======== KONFIGURACJA SPOTIFY ========
-const clientId = "d46489fc111b45aea775339b985ebf31"; // Twój Client ID z Spotify Dashboard
-const redirectUri = "https://grzegorzj77.github.io/song-finder/"; // Twój URL GitHub Pages
-const scopes = "user-read-private user-read-email playlist-modify-public";
+const clientId = "d46489fc111b45aea775339b985ebf31"; // Twój Client ID
+const clientSecret = "ac1c35a25a5648af9c486106791822d0"; // Twój Client Secret
 
 // ======== ELEMENTY HTML ========
 const startBtn = document.getElementById('startRecording');
-const loginBtn = document.getElementById('loginBtn');
 const userText = document.getElementById('userText');
 const resultsList = document.getElementById('results');
 
-// ======== USUNIĘCIE TOKENA NA START ========
-let accessToken = null;  // zakładamy nowego użytkownika
-window.history.replaceState({}, document.title, redirectUri); // usuń hash z URL na start
+let accessToken = null;
 
-// ======== PRZYCISK LOGOWANIA ========
-loginBtn.style.display = "block"; // zawsze widoczny
-loginBtn.addEventListener('click', () => {
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-    window.location = authUrl;
-});
+// ======== FUNKCJA POBIERANIA TOKENA (Client Credentials Flow) ========
+async function getSpotifyToken() {
+    const tokenUrl = 'https://accounts.spotify.com/api/token';
+    const creds = btoa(`${clientId}:${clientSecret}`);
 
-// ======== FUNKCJA DO POBRANIA TOKENA Z URL ========
-function getTokenFromUrl() {
-    const hash = window.location.hash;
-    if (!hash) return null;
-    const params = new URLSearchParams(hash.replace('#', '?'));
-    return params.get('access_token');
-}
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${creds}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'grant_type=client_credentials'
+        });
 
-// ======== SPRAWDZENIE, CZY UŻYTKOWNIK WRÓCIŁ Z SPOTIFY ========
-window.addEventListener('load', () => {
-    const tokenFromUrl = getTokenFromUrl();
-    if (tokenFromUrl && tokenFromUrl !== "") {
-        accessToken = tokenFromUrl;
+        const data = await response.json();
+        accessToken = data.access_token;
         console.log("Token Spotify pobrany:", accessToken);
-
-        // usuń hash z URL, aby strona była czysta
-        window.history.replaceState({}, document.title, redirectUri);
+    } catch (error) {
+        console.error("Błąd pobierania tokena:", error);
+        alert("Nie udało się pobrać tokena Spotify");
     }
-});
+}
 
 // ======== SPRAWDZENIE OBSŁUGI SPEECH RECOGNITION ========
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -53,11 +46,12 @@ recognition.interimResults = false;
 recognition.maxAlternatives = 1;
 
 // ======== PRZYCISK NAGRYWANIA ========
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', async () => {
+    // pobierz token jeśli jeszcze go nie ma
     if (!accessToken) {
-        alert("Najpierw zaloguj się do Spotify!");
-        return;
+        await getSpotifyToken();
     }
+
     userText.textContent = "Słucham...";
     recognition.start();
 });
@@ -79,27 +73,18 @@ recognition.addEventListener('error', (event) => {
 // ======== FUNKCJA WYSZUKIWANIA PIOSENEK W SPOTIFY ========
 async function searchSpotify(query) {
     if (!accessToken) {
-        alert("Brak tokena – zaloguj się do Spotify!");
+        alert("Brak tokena Spotify");
         return;
     }
 
     resultsList.innerHTML = "<li>Ładowanie...</li>";
 
     const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`;
-    console.log("Zapytanie do Spotify:", url);
 
     try {
         const response = await fetch(url, {
             headers: { "Authorization": `Bearer ${accessToken}` }
         });
-
-        if (response.status === 401) {
-            // Token wygasł lub nieprawidłowy
-            alert("Twój token wygasł lub jest nieprawidłowy. Zaloguj się ponownie do Spotify.");
-            accessToken = null;
-            resultsList.innerHTML = "";
-            return;
-        }
 
         if (!response.ok) {
             resultsList.innerHTML = `<li>Błąd: ${response.status} ${response.statusText}</li>`;
@@ -109,8 +94,6 @@ async function searchSpotify(query) {
         }
 
         const data = await response.json();
-        console.log("Dane Spotify:", data);
-
         resultsList.innerHTML = "";
 
         if (data.tracks && data.tracks.items.length > 0) {
