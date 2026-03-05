@@ -1,3 +1,76 @@
+// ======== KONFIGURACJA SPOTIFY ========
+const clientId = "d46489fc111b45aea775339b985ebf31"; // Client ID z Spotify Dashboard
+const redirectUri = "https://grzegorzj77.github.io/song-finder/"; // Twój GitHub Pages URL
+const scopes = "user-read-private user-read-email playlist-modify-public";
+
+// ======== OBSŁUGA PRZYCISKU LOGIN ========
+const loginBtn = document.getElementById('loginBtn');
+loginBtn.addEventListener('click', () => {
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+    window.location = authUrl;
+});
+
+// ======== POBIERANIE TOKENA Z URL ========
+function getTokenFromUrl() {
+    const hash = window.location.hash;
+    if (!hash) return null;
+    const params = new URLSearchParams(hash.replace('#', '?'));
+    return params.get('access_token');
+}
+
+let accessToken = getTokenFromUrl();
+
+if (accessToken) {
+    console.log("Token Spotify:", accessToken);
+    loginBtn.style.display = "none"; // ukryj przycisk po zalogowaniu
+} else {
+    console.log("Brak tokena – zaloguj się do Spotify");
+}
+
+// ======== FUNKCJA WYSZUKIWANIA W SPOTIFY (jak wcześniej) ========
+async function searchSpotify(query) {
+    if (!accessToken) {
+        alert("Najpierw zaloguj się do Spotify!");
+        return;
+    }
+
+    resultsList.innerHTML = "<li>Ładowanie...</li>";
+
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`;
+    console.log("Zapytanie do Spotify:", url);
+
+    try {
+        const response = await fetch(url, {
+            headers: { "Authorization": `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) {
+            resultsList.innerHTML = `<li>Błąd: ${response.status} ${response.statusText}</li>`;
+            const errorData = await response.json();
+            console.error("Błąd Spotify:", errorData);
+            return;
+        }
+
+        const data = await response.json();
+        resultsList.innerHTML = "";
+
+        if (data.tracks && data.tracks.items.length > 0) {
+            data.tracks.items.forEach(track => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${track.name}</strong> – ${track.artists[0].name} <a href="${track.external_urls.spotify}" target="_blank">Odtwórz</a>`;
+                resultsList.appendChild(li);
+            });
+        } else {
+            resultsList.innerHTML = "<li>Nie znaleziono żadnych piosenek.</li>";
+        }
+
+    } catch (error) {
+        resultsList.innerHTML = "<li>Błąd połączenia z API</li>";
+        console.error("Błąd fetch:", error);
+    }
+}
+
+
 // ======== SPRAWDZENIE OBSŁUGI SPEECH RECOGNITION ========
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
