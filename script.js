@@ -1,4 +1,4 @@
-// ======== KONFIGURACJA SPOTIFY ========
+// =cc======= KONFIGURACJA SPOTIFY ========
 const clientId = "d46489fc111b45aea775339b985ebf31"; // Twój Client ID
 const clientSecret = "ac1c35a25a5648af9c486106791822d0"; // Twój Client Secret
 
