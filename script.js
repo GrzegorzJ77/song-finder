@@ -16,7 +16,7 @@ const userText = document.getElementById('userText');
 const resultsList = document.getElementById('results');
 
 // ======== TWÓJ TOKEN SPOTIFY ========
-const accessToken = "1POdFZRZbvb...qqillRxMr2z"; // wklej tutaj swój token
+const accessToken = "Bearer 1POdFZRZbvb...qqillRxMr2z"; // wklej tutaj swój token
 
 // ======== PRZYCISK NAGRYWANIA ========
 startBtn.addEventListener('click', () => {
