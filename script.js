@@ -9,6 +9,17 @@ const loginBtn = document.getElementById('loginBtn');
 const userText = document.getElementById('userText');
 const resultsList = document.getElementById('results');
 
+// ======== USUNIĘCIE TOKENA NA START ========
+let accessToken = null;  // zakładamy nowego użytkownika
+window.history.replaceState({}, document.title, redirectUri); // usuń hash z URL na start
+
+// ======== PRZYCISK LOGOWANIA ========
+loginBtn.style.display = "block"; // zawsze widoczny
+loginBtn.addEventListener('click', () => {
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+    window.location = authUrl;
+});
+
 // ======== FUNKCJA DO POBRANIA TOKENA Z URL ========
 function getTokenFromUrl() {
     const hash = window.location.hash;
@@ -17,25 +28,16 @@ function getTokenFromUrl() {
     return params.get('access_token');
 }
 
-// ======== INICJALIZACJA TOKENA ========
-let accessToken = null;
+// ======== SPRAWDZENIE, CZY UŻYTKOWNIK WRÓCIŁ Z SPOTIFY ========
+window.addEventListener('load', () => {
+    const tokenFromUrl = getTokenFromUrl();
+    if (tokenFromUrl && tokenFromUrl !== "") {
+        accessToken = tokenFromUrl;
+        console.log("Token Spotify pobrany:", accessToken);
 
-// Pobranie tokena z URL jeśli strona wróciła z autoryzacją
-const tokenFromUrl = getTokenFromUrl();
-if (tokenFromUrl && tokenFromUrl !== "") {
-    accessToken = tokenFromUrl;
-    console.log("Token Spotify pobrany:", accessToken);
-
-    // usuń hash z URL, aby strona wyglądała czysto
-    window.history.replaceState({}, document.title, redirectUri);
-}
-
-// ======== PRZYCISK LOGOWANIA – ZAWSZE WIDOCZNY ========
-loginBtn.style.display = "block"; // zawsze widoczny
-
-loginBtn.addEventListener('click', () => {
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-    window.location = authUrl;
+        // usuń hash z URL, aby strona była czysta
+        window.history.replaceState({}, document.title, redirectUri);
+    }
 });
 
 // ======== SPRAWDZENIE OBSŁUGI SPEECH RECOGNITION ========
