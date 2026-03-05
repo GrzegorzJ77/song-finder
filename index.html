@@ -1,21 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Song Finder MVP</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Finder PWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            background: #f9f9f9;
+        }
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        #userText {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        #results {
+            margin-top: 15px;
+            list-style: none;
+            padding-left: 0;
+        }
+        #results li {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        #results a {
+            margin-left: 10px;
+            color: #1DB954;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Song Finder MVP</h1>
+    <h1>Song Finder PWA</h1>
     <button id="loginBtn">Zaloguj się do Spotify</button>
     <button id="startRecording">🎤 Nagraj fragment piosenki</button>
-    
-    <p id="userText">Powiedz coś...</p>
-    
-    <h2>Wyniki Spotify:</h2>
+    <p id="userText"></p>
     <ul id="results"></ul>
 
+    <!-- Podłączenie skryptu -->
     <script src="script.js"></script>
 </body>
 </html>
-
