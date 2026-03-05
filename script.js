@@ -42,7 +42,7 @@ async function searchSpotify(query) {
     resultsList.innerHTML = "<li>Ładowanie...</li>";
 
     // Tymczasowo: demo token
-    const accessToken = "TU_WKLEJ_SWÓJ_ACCESS_TOKEN";
+    const accessToken = "1POdFZRZbvb...qqillRxMr2z";
     
     const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`, {
         headers: {
