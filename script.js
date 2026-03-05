@@ -9,7 +9,7 @@ const loginBtn = document.getElementById('loginBtn');
 const userText = document.getElementById('userText');
 const resultsList = document.getElementById('results');
 
-// ======== OAuth – pobranie tokena z URL ========
+// ======== OAUTH – pobranie tokena z URL ========
 function getTokenFromUrl() {
     const hash = window.location.hash;
     if (!hash) return null;
@@ -19,14 +19,19 @@ function getTokenFromUrl() {
 
 let accessToken = getTokenFromUrl();
 
-if (accessToken) {
+// ======== USTAWIENIE PRZYCISKU LOGOWANIA ========
+if (accessToken && accessToken !== "") {
     console.log("Token Spotify:", accessToken);
     loginBtn.style.display = "none"; // ukryj przycisk po zalogowaniu
+
+    // Usuń hash z URL, żeby strona była czysta
+    window.history.replaceState({}, document.title, redirectUri);
 } else {
-    console.log("Brak tokena – zaloguj się do Spotify");
+    console.log("Brak tokena – przycisk logowania widoczny");
+    loginBtn.style.display = "block"; // wymuś widoczność przycisku
 }
 
-// ======== PRZYCISK LOGOWANIA ========
+// ======== OBSŁUGA PRZYCISKU LOGOWANIA ========
 loginBtn.addEventListener('click', () => {
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
     window.location = authUrl;
