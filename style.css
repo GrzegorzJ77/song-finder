@@ -7,7 +7,6 @@ color:white;
 
 header{
 display:flex;
-justify-content:space-between;
 align-items:center;
 padding:20px;
 background:#181818;
@@ -15,20 +14,9 @@ border-bottom:1px solid #282828;
 }
 
 .logo{
-font-size:20px;
+font-size:22px;
 font-weight:bold;
 }
-
-button{
-background:#1DB954;
-border:none;
-padding:10px 16px;
-border-radius:20px;
-font-weight:bold;
-cursor:pointer;
-}
-
-button:hover
 
 .container{
 max-width:1000px;
@@ -51,6 +39,17 @@ background:#2a2a2a;
 color:white;
 font-size:16px;
 }
+
+button{
+background:#1DB954;
+border:none;
+padding:10px 16px;
+border-radius:20px;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover
 
 .results{
 display:grid;
