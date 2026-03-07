@@ -1,50 +1,45 @@
 const CLIENT_ID = "d46489fc111b45aea775339b985ebf31";
-const CLIENT_SECRET = "ac1c35a25a5648af9c486106791822d0";
+const REDIRECT_URI = window.location.origin + window.location.pathname;
 
+let accessToken = null;
+
+const loginBtn = document.getElementById("loginBtn");
 const searchBtn = document.getElementById("searchBtn");
 const searchInput = document.getElementById("searchInput");
 const resultsDiv = document.getElementById("results");
 const voiceBtn = document.getElementById("voiceBtn");
 
-let token = null;
-
-/* pobranie tokenu - frontend-only (tylko do testów!) */
-async function getToken(){
-
-if(token) return token;
-
-const auth = btoa(CLIENT_ID + ":" + CLIENT_SECRET);
-
-const res = await fetch(
-"https://accounts.spotify.com/api/token",
-{
-method:"POST",
-headers:{
-"Authorization":"Basic "+auth,
-"Content-Type":"application/x-www-form-urlencoded"
-},
-body:"grant_type=client_credentials"
-}
-);
-
-const data = await res.json();
-
-token = data.access_token;
-
-return token;
+/* Logowanie do Spotify */
+loginBtn.onclick = () => {
+const authUrl =
+"https://accounts.spotify.com/authorize" +
+"?client_id=" + CLIENT_ID +
+"&response_type=token" +
+"&redirect_uri=" + encodeURIComponent(REDIRECT_URI);
+window.location = authUrl;
 }
 
-/* wyszukiwanie */
+/* Pobranie tokenu z URL */
+function getToken(){
+if(window.location.hash){
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+accessToken = params.get("access_token");
+window.location.hash = "";
+}
+}
+
+getToken();
+
+/* Wyszukiwanie */
 searchBtn.onclick = search;
 
 async function search(){
-
 const query = searchInput.value;
-if(!query) return;
+if(!query || !accessToken) return;
 
-const accessToken = await getToken();
-
-const url = "https://api.spotify.com/v1/search?q="+
+const url =
+"https://api.spotify.com/v1/search?q="+
 encodeURIComponent(query)+
 "&type=track&limit=12";
 
@@ -60,7 +55,7 @@ showResults(data.tracks.items);
 searchYoutube(query);
 }
 
-/* pokazanie wyników */
+/* Wyświetlanie wyników */
 function showResults(tracks){
 resultsDiv.innerHTML="";
 
@@ -82,7 +77,7 @@ resultsDiv.appendChild(card);
 });
 }
 
-/* YouTube teledyski */
+/* Teledyski YouTube */
 function searchYoutube(query){
 const videoDiv=document.getElementById("videoSection");
 videoDiv.innerHTML=
@@ -91,7 +86,7 @@ videoDiv.innerHTML=
 <iframe src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}"></iframe>`;
 }
 
-/* wyszukiwanie głosowe */
+/* Wyszukiwanie głosowe */
 if("webkitSpeechRecognition" in window){
 const recognition=new webkitSpeechRecognition();
 recognition.lang="pl-PL";
