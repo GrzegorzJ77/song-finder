@@ -1,28 +1,35 @@
 <!DOCTYPE html>
+
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <title>Song Finder</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        button { padding: 10px 20px; font-size: 16px; }
-        #results li { margin-bottom: 10px; }
-    </style>
+<meta charset="UTF-8">
+<title>Song Finder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <h1>Song Finder – wyszukaj piosenkę</h1>
 
-    <!-- Przycisk logowania już niepotrzebny -->
-    <!--<button id="loginBtn">Zaloguj się do Spotify</button>-->
+<header>
+<div class="logo">🎵 Song Finder</div>
+</header>
 
-    <!-- Przycisk nagrywania -->
-    <button id="startRecording">🎤 Nagraj fragment piosenki</button>
+<main class="container">
 
-    <p id="userText"></p>
+<div class="search-box">
+<input id="searchInput" type="text" placeholder="Powiedz lub wpisz nazwę piosenki...">
+<button id="searchBtn">Szukaj</button>
+<button id="voiceBtn">🎤</button>
+</div>
 
-    <ul id="results"></ul>
+<h2>Wyniki</h2>
+<div id="results" class="results"></div>
 
-    <!-- Skrypt -->
-    <script src="script.js"></script>
+<div id="videoSection" class="video-section"></div>
+
+</main>
+
+<script src="script.js"></script>
+
 </body>
 </html>
