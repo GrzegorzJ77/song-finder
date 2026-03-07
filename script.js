@@ -1,38 +1,50 @@
 const CLIENT_ID = "d46489fc111b45aea775339b985ebf31";
-const CLIENT_SECRET = "ac1c35a25a5648af9c486106791822d0";
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+let accessToken = null;
 
 const searchBtn = document.getElementById("searchBtn");
 const searchInput = document.getElementById("searchInput");
 const resultsDiv = document.getElementById("results");
 const voiceBtn = document.getElementById("voiceBtn");
 
-let token = null;
+/* logowanie */
+
+async function login(){
+
+const authUrl =
+"https://accounts.spotify.com/authorize" +
+"?client_id=" + CLIENT_ID +
+"&response_type=token" +
+"&redirect_uri=" + encodeURIComponent(REDIRECT_URI);
+
+window.location = authUrl;
+
+}
 
 /* pobranie tokenu */
 
-async function getToken(){
+function getToken(){
 
-if(token) return token;
+if(window.location.hash){
 
-const auth = btoa(CLIENT_ID + ":" + CLIENT_SECRET);
+const hash = window.location.hash.substring(1);
 
-const res = await fetch(
-"https://accounts.spotify.com/api/token",
-{
-method:"POST",
-headers:{
-"Authorization":"Basic "+auth,
-"Content-Type":"application/x-www-form-urlencoded"
-},
-body:"grant_type=client_credentials"
+const params = new URLSearchParams(hash);
+
+accessToken = params.get("access_token");
+
+window.location.hash="";
+
 }
-);
 
-const data = await res.json();
+}
 
-token = data.access_token;
+getToken();
 
-return token;
+if(!accessToken){
+
+login();
 
 }
 
@@ -45,8 +57,6 @@ async function search(){
 const query = searchInput.value;
 
 if(!query) return;
-
-const accessToken = await getToken();
 
 const url =
 "https://api.spotify.com/v1/search?q="+
@@ -67,7 +77,7 @@ searchYoutube(query);
 
 }
 
-/* pokazanie wyników */
+/* wyniki */
 
 function showResults(tracks){
 
@@ -97,7 +107,7 @@ resultsDiv.appendChild(card);
 
 }
 
-/* YouTube */
+/* youtube */
 
 function searchYoutube(query){
 
@@ -111,7 +121,7 @@ videoDiv.innerHTML=
 
 }
 
-/* wyszukiwanie głosowe */
+/* voice */
 
 if("webkitSpeechRecognition" in window){
 
