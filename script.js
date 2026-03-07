@@ -1,7 +1,42 @@
+const CLIENT_ID = "d46489fc111b45aea775339b985ebf31";
+const CLIENT_SECRET = "ac1c35a25a5648af9c486106791822d0";
+
 const searchBtn = document.getElementById("searchBtn");
 const searchInput = document.getElementById("searchInput");
 const resultsDiv = document.getElementById("results");
 const voiceBtn = document.getElementById("voiceBtn");
+
+let token = null;
+
+/* pobranie tokenu */
+
+async function getToken(){
+
+if(token) return token;
+
+const auth = btoa(CLIENT_ID + ":" + CLIENT_SECRET);
+
+const res = await fetch(
+"https://accounts.spotify.com/api/token",
+{
+method:"POST",
+headers:{
+"Authorization":"Basic "+auth,
+"Content-Type":"application/x-www-form-urlencoded"
+},
+body:"grant_type=client_credentials"
+}
+);
+
+const data = await res.json();
+
+token = data.access_token;
+
+return token;
+
+}
+
+/* wyszukiwanie */
 
 searchBtn.onclick = search;
 
@@ -11,61 +46,47 @@ const query = searchInput.value;
 
 if(!query) return;
 
+const accessToken = await getToken();
+
 const url =
-"https://spotify23.p.rapidapi.com/search/?q=" +
-encodeURIComponent(query) +
-"&type=tracks&limit=12";
+"https://api.spotify.com/v1/search?q="+
+encodeURIComponent(query)+
+"&type=track&limit=12";
 
-const options = {
-method: "GET",
-headers: {
-"X-RapidAPI-Key": "YOUR_RAPIDAPI_KEY",
-"X-RapidAPI-Host": "spotify23.p.rapidapi.com"
+const res = await fetch(url,{
+headers:{
+Authorization:"Bearer "+accessToken
 }
-};
+});
 
-try{
-
-const res = await fetch(url, options);
 const data = await res.json();
 
 showResults(data.tracks.items);
 
 searchYoutube(query);
 
-}catch(e){
-
-console.error(e);
-
 }
 
-}
+/* pokazanie wyników */
 
-function showResults(items){
+function showResults(tracks){
 
 resultsDiv.innerHTML="";
 
-items.forEach(item=>{
-
-const track = item.data;
-
-const img = track.albumOfTrack.coverArt.sources[0].url;
-const title = track.name;
-const artist = track.artists.items[0].profile.name;
-const preview = track.preview_url;
+tracks.forEach(track=>{
 
 const card = document.createElement("div");
 
 card.className="card";
 
+const img = track.album.images[0]?.url;
+const preview = track.preview_url;
+
 card.innerHTML=`
 
 <img src="${img}">
-
-<div class="title">${title}</div>
-
-<div class="artist">${artist}</div>
-
+<div class="title">${track.name}</div>
+<div class="artist">${track.artists[0].name}</div>
 ${preview ? `<audio controls class="preview" src="${preview}"></audio>` : ""}
 
 `;
@@ -75,6 +96,8 @@ resultsDiv.appendChild(card);
 });
 
 }
+
+/* YouTube */
 
 function searchYoutube(query){
 
@@ -87,6 +110,8 @@ videoDiv.innerHTML=
 <iframe src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}"></iframe>`;
 
 }
+
+/* wyszukiwanie głosowe */
 
 if("webkitSpeechRecognition" in window){
 
