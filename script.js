@@ -1,99 +1,72 @@
-const clientId="d46489fc111b45aea775339b985ebf31";
-const redirectUri=window.location.origin+window.location.pathname;
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+const resultsDiv = document.getElementById("results");
+const voiceBtn = document.getElementById("voiceBtn");
 
-const loginBtn=document.getElementById("loginBtn");
-const searchBtn=document.getElementById("searchBtn");
-const searchInput=document.getElementById("searchInput");
-const resultsDiv=document.getElementById("results");
-const voiceBtn=document.getElementById("voiceBtn");
-
-let accessToken=null;
-
-loginBtn.onclick=()=>{
-
-const scopes="user-read-private";
-
-const url=
-"https://accounts.spotify.com/authorize"+
-"?response_type=token"+
-"&client_id="+clientId+
-"&scope="+encodeURIComponent(scopes)+
-"&redirect_uri="+encodeURIComponent(redirectUri);
-
-window.location=url;
-};
-
-function getTokenFromUrl(){
-
-const hash=window.location.hash;
-
-if(hash){
-
-const params=new URLSearchParams(hash.replace("#",""));
-
-accessToken=params.get("access_token");
-
-window.location.hash="";
-
-}
-
-}
-
-getTokenFromUrl();
-
-searchBtn.onclick=search;
+searchBtn.onclick = search;
 
 async function search(){
 
-const query=searchInput.value;
+const query = searchInput.value;
 
-if(!accessToken){
+if(!query) return;
 
-alert("Najpierw zaloguj się do Spotify");
+const url =
+"https://spotify23.p.rapidapi.com/search/?q=" +
+encodeURIComponent(query) +
+"&type=tracks&limit=12";
 
-return;
-
+const options = {
+method: "GET",
+headers: {
+"X-RapidAPI-Key": "YOUR_RAPIDAPI_KEY",
+"X-RapidAPI-Host": "spotify23.p.rapidapi.com"
 }
+};
 
-const url=`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=12`;
+try{
 
-const res=await fetch(url,{
-headers:{
-Authorization:"Bearer "+accessToken
-}
-});
-
-const data=await res.json();
+const res = await fetch(url, options);
+const data = await res.json();
 
 showResults(data.tracks.items);
 
 searchYoutube(query);
 
+}catch(e){
+
+console.error(e);
+
 }
 
-function showResults(tracks){
+}
+
+function showResults(items){
 
 resultsDiv.innerHTML="";
 
-tracks.forEach(track=>{
+items.forEach(item=>{
 
-const card=document.createElement("div");
+const track = item.data;
+
+const img = track.albumOfTrack.coverArt.sources[0].url;
+const title = track.name;
+const artist = track.artists.items[0].profile.name;
+const preview = track.preview_url;
+
+const card = document.createElement("div");
 
 card.className="card";
-
-const img=track.album.images[0]?.url;
-
-const preview=track.preview_url;
 
 card.innerHTML=`
 
 <img src="${img}">
 
-<div class="title">${track.name}</div>
+<div class="title">${title}</div>
 
-<div class="artist">${track.artists[0].name}</div>
+<div class="artist">${artist}</div>
 
-${preview?`<audio controls class="preview" src="${preview}"></audio>`:""}
+${preview ? `<audio controls class="preview" src="${preview}"></audio>` : ""}
 
 `;
 
