@@ -1,116 +1,138 @@
-// =cc======= KONFIGURACJA SPOTIFY ========
-const clientId = "d46489fc111b45aea775339b985ebf31"; // Twój Client ID
-const clientSecret = "ac1c35a25a5648af9c486106791822d0"; // Twój Client Secret
+const clientId="d46489fc111b45aea775339b985ebf31";
+const redirectUri=window.location.origin+window.location.pathname;
 
-// ======== ELEMENTY HTML ========
-const startBtn = document.getElementById('startRecording');
-const userText = document.getElementById('userText');
-const resultsList = document.getElementById('results');
+const loginBtn=document.getElementById("loginBtn");
+const searchBtn=document.getElementById("searchBtn");
+const searchInput=document.getElementById("searchInput");
+const resultsDiv=document.getElementById("results");
+const voiceBtn=document.getElementById("voiceBtn");
 
-let accessToken = null;
+let accessToken=null;
 
-// ======== FUNKCJA POBIERANIA TOKENA (Client Credentials Flow) ========
-async function getSpotifyToken() {
-    const tokenUrl = 'https://accounts.spotify.com/api/token';
-    const creds = btoa(`${clientId}:${clientSecret}`);
+loginBtn.onclick=()=>{
 
-    try {
-        const response = await fetch(tokenUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Basic ${creds}`,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'grant_type=client_credentials'
-        });
+const scopes="user-read-private";
 
-        const data = await response.json();
-        accessToken = data.access_token;
-        console.log("Token Spotify pobrany:", accessToken);
-    } catch (error) {
-        console.error("Błąd pobierania tokena:", error);
-        alert("Nie udało się pobrać tokena Spotify");
-    }
+const url=
+"https://accounts.spotify.com/authorize"+
+"?response_type=token"+
+"&client_id="+clientId+
+"&scope="+encodeURIComponent(scopes)+
+"&redirect_uri="+encodeURIComponent(redirectUri);
+
+window.location=url;
+};
+
+function getTokenFromUrl(){
+
+const hash=window.location.hash;
+
+if(hash){
+
+const params=new URLSearchParams(hash.replace("#",""));
+
+accessToken=params.get("access_token");
+
+window.location.hash="";
+
 }
 
-// ======== SPRAWDZENIE OBSŁUGI SPEECH RECOGNITION ========
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-if (!SpeechRecognition) {
-    alert("Twoja przeglądarka nie obsługuje rozpoznawania mowy!");
 }
 
-const recognition = new SpeechRecognition();
-recognition.lang = 'pl-PL';
-recognition.interimResults = false;
-recognition.maxAlternatives = 1;
+getTokenFromUrl();
 
-// ======== PRZYCISK NAGRYWANIA ========
-startBtn.addEventListener('click', async () => {
-    // pobierz token jeśli jeszcze go nie ma
-    if (!accessToken) {
-        await getSpotifyToken();
-    }
+searchBtn.onclick=search;
 
-    userText.textContent = "Słucham...";
-    recognition.start();
+async function search(){
+
+const query=searchInput.value;
+
+if(!accessToken){
+
+alert("Najpierw zaloguj się do Spotify");
+
+return;
+
+}
+
+const url=`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=12`;
+
+const res=await fetch(url,{
+headers:{
+Authorization:"Bearer "+accessToken
+}
 });
 
-// ======== OBSŁUGA WYNIKÓW NAGRANIA ========
-recognition.addEventListener('result', (event) => {
-    const transcript = event.results[0][0].transcript;
-    userText.textContent = `Powiedziałeś: "${transcript}"`;
-    console.log("Rozpoznany tekst:", transcript);
-    searchSpotify(transcript);
+const data=await res.json();
+
+showResults(data.tracks.items);
+
+searchYoutube(query);
+
+}
+
+function showResults(tracks){
+
+resultsDiv.innerHTML="";
+
+tracks.forEach(track=>{
+
+const card=document.createElement("div");
+
+card.className="card";
+
+const img=track.album.images[0]?.url;
+
+const preview=track.preview_url;
+
+card.innerHTML=`
+
+<img src="${img}">
+
+<div class="title">${track.name}</div>
+
+<div class="artist">${track.artists[0].name}</div>
+
+${preview?`<audio controls class="preview" src="${preview}"></audio>`:""}
+
+`;
+
+resultsDiv.appendChild(card);
+
 });
 
-recognition.addEventListener('speechend', () => recognition.stop());
-recognition.addEventListener('error', (event) => {
-    userText.textContent = 'Błąd rozpoznawania mowy: ' + event.error;
-    console.error("Błąd SpeechRecognition:", event.error);
-});
+}
 
-// ======== FUNKCJA WYSZUKIWANIA PIOSENEK W SPOTIFY ========
-async function searchSpotify(query) {
-    if (!accessToken) {
-        alert("Brak tokena Spotify");
-        return;
-    }
+function searchYoutube(query){
 
-    resultsList.innerHTML = "<li>Ładowanie...</li>";
+const videoDiv=document.getElementById("videoSection");
 
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`;
+videoDiv.innerHTML=
 
-    try {
-        const response = await fetch(url, {
-            headers: { "Authorization": `Bearer ${accessToken}` }
-        });
+`<h2>Teledysk</h2>
 
-        if (!response.ok) {
-            resultsList.innerHTML = `<li>Błąd: ${response.status} ${response.statusText}</li>`;
-            const errorData = await response.json();
-            console.error("Błąd Spotify:", errorData);
-            return;
-        }
+<iframe src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}"></iframe>`;
 
-        const data = await response.json();
-        resultsList.innerHTML = "";
+}
 
-        if (data.tracks && data.tracks.items.length > 0) {
-            data.tracks.items.forEach(track => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <strong>${track.name}</strong> – ${track.artists[0].name} 
-                    <a href="${track.external_urls.spotify}" target="_blank">Odtwórz</a>
-                `;
-                resultsList.appendChild(li);
-            });
-        } else {
-            resultsList.innerHTML = "<li>Nie znaleziono żadnych piosenek.</li>";
-        }
+if("webkitSpeechRecognition" in window){
 
-    } catch (error) {
-        resultsList.innerHTML = "<li>Błąd połączenia z API</li>";
-        console.error("Błąd fetch:", error);
-    }
+const recognition=new webkitSpeechRecognition();
+
+recognition.lang="pl-PL";
+
+voiceBtn.onclick=()=>{
+
+recognition.start();
+
+};
+
+recognition.onresult=e=>{
+
+searchInput.value=e.results[0][0].transcript;
+
+search();
+
+};
+
 }
