@@ -8,6 +8,7 @@ color:white;
 header{
 display:flex;
 align-items:center;
+justify-content:space-between;
 padding:20px;
 background:#181818;
 border-bottom:1px solid #282828;
